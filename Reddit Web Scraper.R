@@ -1,44 +1,82 @@
-#library(lasso2)
-#library(tm)           # Framework for text mining.
-#library(SnowballC)    # Provides wordStem() for stemming.
-#library(qdap)         # Quantitative discourse analysis of transcripts.
-#library(qdapDictionaries)
-#library(dplyr)        # Data preparation and pipes %>%.
+library(lasso2)
+library(tm)           # Framework for text mining.
+library(SnowballC)    # Provides wordStem() for stemming.
+library(qdap)         # Quantitative discourse analysis of transcripts.
+library(qdapDictionaries)
+library(dplyr)        # Data preparation and pipes %>%.
 library(rjson)
+library(RJSONIO)
 library(rvest, warn.conflicts=FALSE)
+library(RSelenium)
+#library(jsonlite)
 
-
+#the main URL to pull from
 url <- 'https://www.reddit.com/r/politics/'
 
-library(RSelenium)
-checkForServer() # check if Selenium Server package is installed and if not, install now
-startServer() # start server
-browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")
 
-
-browser$open()
-browser$navigate(url)
-
-
-links <- browser$findElements(using="css selector", value=".may-blank")
-urls <- rep(NA, length(links))
-for (i in 1:length(links)){
-  urls[i] <- unlist(links[[i]]$getElementAttribute('href'))
+#open the page
+open.page <- function(url){
+  checkForServer() # check if Selenium Server package is installed and if not, install now
+  startServer() # start server
+  browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")
+  
+  
+  browser$open()
+  browser$navigate(url)
+  return(browser)
 }
-# alternatively, we can also do
-urls <- unlist(sapply(links, function(x) x$getElementAttribute('href')))
-
-#only get the comment urls
-url.list <- urls[grep("r/politics/comments",urls)]
 
 
 
+#create thread list
+create.thread.list <- function(browser){ #works from open browser
+  links <- browser$findElements(using="css selector", value=".may-blank")
+  urls <- rep(NA, length(links))
+  
+  urls <- unlist(sapply(links, function(x) x$getElementAttribute('href')))
+  
+  #only get the comment urls
+  url.list <- urls[grep("r/politics/comments",urls)]
+  
+  for (i in 1:length(url.list)) {
+    url.list[i] <- paste0(url.list[i],".json")
+  }
+  
+  return(url.list)
+} 
 
+
+
+#get the "next" link to crawl later
+get.next.link <- function(browser){
+  links.next <- browser$findElements(using="css selector", value=".nextprev a")
+  urls.next <- rep(NA, length(links.next))
+  
+  urls.next <- unlist(sapply(links.next, function(x) x$getElementAttribute('href')))
+  next.link <- urls.next[grep("?count=25",urls.next)]
+  
+  return(next.link)
+}
+
+
+#get the "next" link to crawl later AFTER NEXT HAS BEEN CLICKED ONCE
+get.next.link2 <- function(browser){
+  links.next <- browser$findElements(using="css selector", value="#siteTable .separator+ a")
+  urls.next <- rep(NA, length(links.next))
+  
+  urls.next <- unlist(sapply(links.next, function(x) x$getElementAttribute('href')))
+  next.link <- urls.next[grep("?count=",urls)]
+  
+  return(next.link)
+}
 
 ###############################################
 #ATTEMPT TO GET ALL COMMENTS VIA SELECTOR TOOL#
 ###############################################
 
+#this method returns more comments (and subcomments!)
+#but we can't easily map authors to comments
+#and we have to clean out html
 
 browser$navigate(url.list[5])
 comments <- browser$findElements(using="css selector", value=".md p")
@@ -56,7 +94,7 @@ textauth2 <- as.character(textauth)
 ##########################################
 
 
-#this section will eventually be able to click the "load more comments" button and continue scraping. Ignore for now.
+#this section will eventually be able to click the "load more comments" button and continue scraping, hopefully. Ignore for now.
 
 
 ##########################################
@@ -68,22 +106,14 @@ textauth2 <- as.character(textauth)
 
 #works for one page of comments for now. in the future, will loop through all threads
 
-#convert all comment urls to json
-url.to.json <- function(url.list){
-  for (i in 1:length(url.list)) {
-    url.list[i] <- paste0(url.list[i],".json")
-  }
-  return(url.list)
-}
-
 
 
 main.data.generator <- function(url.list,i){
   #select the URL of the thread to scrape from
-  url.comment <- as.character(url.list[i])
+  url.comment <- as.character(url.list[i]) 
   
   #convert from JSON to R-usable data
-  rawdat <- fromJSON(file=url.comment)
+  rawdat <- rjson::fromJSON(file=url.comment)
   
   #pulling just want we want
   main.data <- rawdat[[2]]$data$children
@@ -97,11 +127,7 @@ main.data.generator <- function(url.list,i){
 
 
 
-#add data
-
-
-#this function puts comments and their authors into a dataframe from a given main.data
-
+#this function puts comments and their authors into a matrix from a given main.data
 comments.to.dataframe <- function(main.data){
   
   #initialize a matrix
@@ -111,7 +137,6 @@ comments.to.dataframe <- function(main.data){
   for (i in 2:(length(main.data)-1)){
     data.list <- rbind(data.list,c(main.data[[i]]$data$body,main.data[[i]]$data$author))
   }
-
   return(data.list)
 }
 
@@ -119,8 +144,24 @@ comments.to.dataframe <- function(main.data){
 
 
 
-#let's try something
+#USING THIS CRAWLER
+
+#STEP 1: PUT IN THE URL AND OPEN THE BROWSER
+#the main URL to pull from
+url <- 'https://www.reddit.com/r/politics/'
+browser <- open.page(url)
+
+#STEP 2: GET URLS TO THREADS ON PAGE
+url.list <- create.thread.list(browser)
+
+#STEP 3: GET LINK TO CLICK TO NEXT PAGE
+next.link <- get.next.link(browser)
+
+#STEP 4: INITIALIZE DATA MATRIX
 data.matrix <- matrix(c("a","b"),nrow=1)
+
+browser$navigate(url.list[6])
+#STEP 5: GATHER COMMENT DATA FROM EACH THREAD
 for (url in 1:length(url.list)){ #for every thread
   main.data <- main.data.generator(url.list,url) #create main data
   
@@ -132,6 +173,45 @@ for (url in 1:length(url.list)){ #for every thread
   }
 }
 
+
+#STEP 6: NAVIGATE TO THE NEXT PAGE
+browser$navigate(next.link) 
+
+#STEP 7: COLLECT COMMENT DATA ON NEW PAGE (by repeating steps 4+5)
+url.list <- create.thread.list(browser)
+
+for (url in 1:length(url.list)){ #for every thread
+  main.data <- main.data.generator(url.list,url) #create main data
+  
+  if (length(main.data) == 0){
+    next
+  }
+  else{
+    data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))
+  }
+}
+
+#STEP 8: GO TO THE NEXT PAGE USING THE SECOND "NEXTLINK" FUNCTION AND GO TO NEXT PAGE
+next.link.2 <- get.next.link2(browser)
+browser$navigate(next.link.2)
+
+#STEP 9: REPEAT STEPS 7 AND 8 FOR AS LONG AS YOU LIKE
+
+#STEP 10: CONVERT YOUR DATA INTO A DATAFRAME
 reddit.data <- as.data.frame(data.matrix)
 reddit.data <- reddit.data[-1,]
 names(reddit.data) <- c("Body","Author")
+  
+
+
+
+
+
+
+
+
+
+
+
+#click to next page
+browser$navigate(next.link.2) #use after you've clicked next the first time
