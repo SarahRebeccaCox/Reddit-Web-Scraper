@@ -10,6 +10,11 @@ library(rvest, warn.conflicts=FALSE)
 library(RSelenium)
 #library(jsonlite)
 
+
+###################################
+#Getting comments through the JSON#
+###################################
+
 #the main URL to pull from
 url <- 'https://www.reddit.com/r/politics/'
 
@@ -65,47 +70,10 @@ get.next.link2 <- function(browser){
   urls.next <- rep(NA, length(links.next))
   
   urls.next <- unlist(sapply(links.next, function(x) x$getElementAttribute('href')))
-  next.link <- urls.next[grep("?count=",urls)]
+  next.link <- urls.next[grep("?count=",urls.next)]
   
   return(next.link)
 }
-
-###############################################
-#ATTEMPT TO GET ALL COMMENTS VIA SELECTOR TOOL#
-###############################################
-
-#this method returns more comments (and subcomments!)
-#but we can't easily map authors to comments
-#and we have to clean out html
-
-browser$navigate(url.list[5])
-comments <- browser$findElements(using="css selector", value=".md p")
-
-
-comment.url <- url.list[5]
-comments <- read_html(comment.url) # reading the HTML code
-text <- html_nodes(comments, ".md") # identify the CSS selector
-textauth <- html_nodes(comments, ".may-blank")
-text # content of CSS selector
-text2 <- as.character(text)
-textauth2 <- as.character(textauth)
-#this method will require cleaning out HTML, but I think it's faster
-
-##########################################
-
-
-#this section will eventually be able to click the "load more comments" button and continue scraping, hopefully. Ignore for now.
-
-
-##########################################
-
-
-###################################
-#Getting comments through the JSON#
-###################################
-
-#works for one page of comments for now. in the future, will loop through all threads
-
 
 
 main.data.generator <- function(url.list,i){
@@ -133,18 +101,20 @@ comments.to.dataframe <- function(main.data){
   #initialize a matrix
   data.list <- matrix(c(main.data[[1]]$data$body,main.data[[1]]$data$author),nrow=1)
   
-  #add the other rows
-  for (i in 2:(length(main.data)-1)){
-    data.list <- rbind(data.list,c(main.data[[i]]$data$body,main.data[[i]]$data$author))
+  if (length(main.data) != 1){
+    for (i in 2:(length(main.data)-1)){
+      data.list <- rbind(data.list,c(main.data[[i]]$data$body,main.data[[i]]$data$author))
+    }
   }
   return(data.list)
 }
 
 
+####################
+#USING THIS CRAWLER#
+####################
 
-
-
-#USING THIS CRAWLER
+#Steps for when all the functions are defined. 
 
 #STEP 1: PUT IN THE URL AND OPEN THE BROWSER
 #the main URL to pull from
@@ -160,7 +130,6 @@ next.link <- get.next.link(browser)
 #STEP 4: INITIALIZE DATA MATRIX
 data.matrix <- matrix(c("a","b"),nrow=1)
 
-browser$navigate(url.list[6])
 #STEP 5: GATHER COMMENT DATA FROM EACH THREAD
 for (url in 1:length(url.list)){ #for every thread
   main.data <- main.data.generator(url.list,url) #create main data
@@ -201,17 +170,38 @@ browser$navigate(next.link.2)
 reddit.data <- as.data.frame(data.matrix)
 reddit.data <- reddit.data[-1,]
 names(reddit.data) <- c("Body","Author")
-  
 
 
+#DON'T USE BELOW HERE
 
 
+###############################################
+#ATTEMPT TO GET ALL COMMENTS VIA SELECTOR TOOL#
+###############################################
+
+#this method returns more comments (and subcomments!)
+#but we can't easily map authors to comments
+#and we have to clean out html
+
+browser$navigate(url.list[5])
+comments <- browser$findElements(using="css selector", value=".md p")
 
 
+comment.url <- url.list[5]
+comments <- read_html(comment.url) # reading the HTML code
+text <- html_nodes(comments, ".md") # identify the CSS selector
+textauth <- html_nodes(comments, ".may-blank")
+text # content of CSS selector
+text2 <- as.character(text)
+textauth2 <- as.character(textauth)
+#this method will require cleaning out HTML, but I think it's faster
+
+##########################################
 
 
+#this section will eventually be able to click the "load more comments" button and continue scraping, hopefully. Ignore for now.
 
 
+##########################################
 
-#click to next page
-browser$navigate(next.link.2) #use after you've clicked next the first time
+
