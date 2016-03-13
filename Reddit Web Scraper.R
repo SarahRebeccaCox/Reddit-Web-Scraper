@@ -171,6 +171,8 @@ reddit.data <- as.data.frame(data.matrix)
 reddit.data <- reddit.data[-1,]
 names(reddit.data) <- c("Body","Author")
 
+#STEP 11: SAVE TO CSV
+write.csv(reddit.data,"RedditData.csv")
 
 #DON'T USE BELOW HERE
 
