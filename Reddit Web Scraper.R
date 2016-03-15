@@ -1,9 +1,9 @@
-library(lasso2)
-library(tm)           # Framework for text mining.
-library(SnowballC)    # Provides wordStem() for stemming.
-library(qdap)         # Quantitative discourse analysis of transcripts.
-library(qdapDictionaries)
-library(dplyr)        # Data preparation and pipes %>%.
+#library(lasso2)
+#library(tm)           # Framework for text mining.
+#library(SnowballC)    # Provides wordStem() for stemming.
+#library(qdap)         # Quantitative discourse analysis of transcripts.
+#library(qdapDictionaries)
+#library(dplyr)        # Data preparation and pipes %>%.
 library(rjson)
 library(RJSONIO)
 library(rvest, warn.conflicts=FALSE)
@@ -110,6 +110,30 @@ comments.to.dataframe <- function(main.data){
 }
 
 
+automate.scraping <- function(number.of.pages){
+  i <- 1
+  while (i<=number.of.pages){
+    url.list <- create.thread.list(browser)
+    
+    for (url in 1:length(url.list)){ #for every thread
+      main.data <- main.data.generator(url.list,url) #create main data
+      
+      if (length(main.data) == 0){
+        next
+      }
+      else{
+        data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))
+      }
+    }
+    
+    next.link.2 <- get.next.link2(browser)
+    browser$navigate(next.link.2)
+    
+    i <- i+1
+  }
+}
+
+
 ####################
 #USING THIS CRAWLER#
 ####################
@@ -164,7 +188,13 @@ for (url in 1:length(url.list)){ #for every thread
 next.link.2 <- get.next.link2(browser)
 browser$navigate(next.link.2)
 
+
 #STEP 9: REPEAT STEPS 7 AND 8 FOR AS LONG AS YOU LIKE
+
+## number.of.pages is the number of additional pages you would like to scroll through and take data from.
+## for example, automate.scraping(3) will repeat steps 7 and 8 3 times.
+automate.scraping(number.of.pages)
+
 
 #STEP 10: CONVERT YOUR DATA INTO A DATAFRAME
 reddit.data <- as.data.frame(data.matrix)
