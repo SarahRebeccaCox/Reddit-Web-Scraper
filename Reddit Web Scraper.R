@@ -20,14 +20,23 @@ url <- 'https://www.reddit.com/r/politics/'
 
 
 #open the page
+wait_till_page_load<-function(page_load_time_out=60){
+  t0<-Sys.time()
+  while(browser$executeScript("return document.readyState;")[[1]]!="complete" & (Sys.time()-t0)<=page_load_time_out){
+    Sys.sleep(0.5)
+  }
+  invisible(0)
+}
+
 open.page <- function(url){
   checkForServer() # check if Selenium Server package is installed and if not, install now
-  startServer() # start server
+  startServer(invisible = FALSE, log = FALSE) # start server
   browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")
   
   
   browser$open()
   browser$navigate(url)
+  #wait_till_page_load(500000000)
   return(browser)
 }
 
@@ -99,11 +108,11 @@ main.data.generator <- function(url.list,i){
 comments.to.dataframe <- function(main.data){
   
   #initialize a matrix
-  data.list <- matrix(c(main.data[[1]]$data$body,main.data[[1]]$data$author),nrow=1)
+  data.list <- matrix(c(main.data[[1]]$data$created_utc,main.data[[1]]$data$body),nrow=1)
   
   if (length(main.data) != 1){
     for (i in 2:(length(main.data)-1)){
-      data.list <- rbind(data.list,c(main.data[[i]]$data$body,main.data[[i]]$data$author))
+      data.list <- rbind(data.list,c(main.data[[i]]$data$created_utc,main.data[[i]]$data$body))
     }
   }
   return(data.list)
@@ -129,7 +138,9 @@ automate.scraping <- function(number.of.pages){
     next.link.2 <- get.next.link2(browser)
     browser$navigate(next.link.2)
     
+    print(paste0(as.character(round(100*i/33)),"%"))
     i <- i+1
+    
   }
 }
 
@@ -147,6 +158,7 @@ browser <- open.page(url)
 
 #STEP 2: GET URLS TO THREADS ON PAGE
 url.list <- create.thread.list(browser)
+
 
 #STEP 3: GET LINK TO CLICK TO NEXT PAGE
 next.link <- get.next.link(browser)
@@ -193,16 +205,18 @@ browser$navigate(next.link.2)
 
 ## number.of.pages is the number of additional pages you would like to scroll through and take data from.
 ## for example, automate.scraping(3) will repeat steps 7 and 8 3 times.
-automate.scraping(number.of.pages)
+automate.scraping(33)
 
 
 #STEP 10: CONVERT YOUR DATA INTO A DATAFRAME
 reddit.data <- as.data.frame(data.matrix)
 reddit.data <- reddit.data[-1,]
-names(reddit.data) <- c("Body","Author")
+names(reddit.data) <- c("UTC","Body")
 
 #STEP 11: SAVE TO CSV
-write.csv(reddit.data,"RedditData.csv")
+write.csv(reddit.data,"RedditDataApr12.csv")
+
+
 
 #DON'T USE BELOW HERE
 
