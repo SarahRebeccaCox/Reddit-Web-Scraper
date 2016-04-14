@@ -119,7 +119,7 @@ comments.to.dataframe <- function(main.data){
 }
 
 
-automate.scraping <- function(number.of.pages){
+automate.scraping <- function(number.of.pages,matrix){
   i <- 1
   while (i<=number.of.pages){
     url.list <- create.thread.list(browser)
@@ -130,8 +130,8 @@ automate.scraping <- function(number.of.pages){
       if (length(main.data) == 0){
         next
       }
-      else{
-        data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))
+      if (length(main.data) != 0){
+        matrix <- rbind(matrix,comments.to.dataframe(main.data))
       }
     }
     
@@ -142,6 +142,7 @@ automate.scraping <- function(number.of.pages){
     i <- i+1
     
   }
+  return(matrix)
 }
 
 
@@ -205,7 +206,7 @@ browser$navigate(next.link.2)
 
 ## number.of.pages is the number of additional pages you would like to scroll through and take data from.
 ## for example, automate.scraping(3) will repeat steps 7 and 8 3 times.
-automate.scraping(33)
+data.matrix <- automate.scraping(33,data.matrix)
 
 
 #STEP 10: CONVERT YOUR DATA INTO A DATAFRAME
@@ -214,7 +215,7 @@ reddit.data <- reddit.data[-1,]
 names(reddit.data) <- c("UTC","Body")
 
 #STEP 11: SAVE TO CSV
-write.csv(reddit.data,"RedditDataApr12.csv")
+write.csv(reddit.data,"RedditDataApr142.csv")
 
 
 
