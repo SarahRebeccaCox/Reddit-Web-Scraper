@@ -1,160 +1,548 @@
-#library(lasso2)#
-#library(tm)           # Framework for text mining.#
-#library(SnowballC)    # Provides wordStem() for stemming.#
-#library(qdap)         # Quantitative discourse analysis of transcripts.#
-#library(qdapDictionaries)#
-#library(dplyr)        # Data preparation and pipes %>%.#
-library(rjson)#
-library(RJSONIO)#
-library(rvest, warn.conflicts=FALSE)#
-library(RSelenium)#
-#library(jsonlite)#
-####################################
-#Getting comments through the JSON##
-####################################
-#
-#the main URL to pull from#
-url <- 'https://www.reddit.com/r/politics/'#
-#open the page#
-wait_till_page_load<-function(page_load_time_out=60){#
-  t0<-Sys.time()#
-  while(browser$executeScript("return document.readyState;")[[1]]!="complete" & (Sys.time()-t0)<=page_load_time_out){#
-    Sys.sleep(0.5)#
-  }#
-  invisible(0)#
-}#
-#
-open.page <- function(url){#
-  checkForServer() # check if Selenium Server package is installed and if not, install now#
-  startServer(invisible = FALSE, log = FALSE) # start server#
-  browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")#
-  browser$open()#
-  browser$navigate(url)#
-  #wait_till_page_load(500000000)#
-  return(browser)#
-}#
-#create thread list#
-create.thread.list <- function(browser){ #works from open browser#
-  links <- browser$findElements(using="css selector", value=".may-blank")#
-  urls <- rep(NA, length(links))#
-  urls <- unlist(sapply(links, function(x) x$getElementAttribute('href')))#
-  #only get the comment urls#
-  url.list <- urls[grep("r/politics/comments",urls)]#
-  for (i in 1:length(url.list)) {#
-    url.list[i] <- paste0(url.list[i],".json")#
-  }#
-  return(url.list)#
-} #
-#get the "next" link to crawl later#
-get.next.link <- function(browser){#
-  links.next <- browser$findElements(using="css selector", value=".nextprev a")#
-  urls.next <- rep(NA, length(links.next))#
-  urls.next <- unlist(sapply(links.next, function(x) x$getElementAttribute('href')))#
-  next.link <- urls.next[grep("?count=25",urls.next)]#
-  return(next.link)#
-}#
-#get the "next" link to crawl later AFTER NEXT HAS BEEN CLICKED ONCE#
-get.next.link2 <- function(browser){#
-  links.next <- browser$findElements(using="css selector", value="#siteTable .separator+ a")#
-  urls.next <- rep(NA, length(links.next))#
-  urls.next <- unlist(sapply(links.next, function(x) x$getElementAttribute('href')))#
-  next.link <- urls.next[grep("?count=",urls.next)]#
-  return(next.link)#
-}#
-main.data.generator <- function(url.list,i){#
-  #select the URL of the thread to scrape from#
-  url.comment <- as.character(url.list[i]) #
-  #convert from JSON to R-usable data#
-  rawdat <- rjson::fromJSON(file=url.comment)#
-  #pulling just want we want#
-  main.data <- rawdat[[2]]$data$children#
-  return(main.data)#
-  #main.data[[5]]$data$body #comment number 5#
-  #main.data[[5]]$data$author #author of comment number 5#
-  #information about the parent post title and url can be found in rawdat[[1]]#
-}#
-#this function puts comments and their authors into a matrix from a given main.data#
-comments.to.dataframe <- function(main.data){#
-  #initialize a matrix#
-  data.list <- matrix(c(main.data[[1]]$data$created_utc,main.data[[1]]$data$body),nrow=1)#
-  if (length(main.data) != 1){#
-    for (i in 2:(length(main.data)-1)){#
-      data.list <- rbind(data.list,c(main.data[[i]]$data$created_utc,main.data[[i]]$data$body))#
-    }#
-  }#
-  return(data.list)#
-}#
-automate.scraping <- function(number.of.pages){#
-  i <- 1#
-  while (i<=number.of.pages){#
-    url.list <- create.thread.list(browser)#
-    for (url in 1:length(url.list)){ #for every thread#
-      main.data <- main.data.generator(url.list,url) #create main data#
-      if (length(main.data) == 0){#
-        next#
-      }#
-      else{#
-        data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))#
-      }#
-    }#
-    next.link.2 <- get.next.link2(browser)#
-    browser$navigate(next.link.2)#
-    i <- i+1#
-  }#
+b
+rownames(b)
+rownames(b) <- c(0-23)
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24")
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")
+b
+rownames(a)
+names(a)
+colnames(a)
+colnames(b) <- colnames(a)
+b
+head(a)
+sum(a[1,],a[2,])
+sum(a[1,])
+grep('01\:',rownames(a)[2])
+grep('01:',rownames(a)[2])
+grep('01:',rownames(a)[1])
+grep('01:',rownames(a)[4])
+grep('01:',rownames(a)[11])
+grep('01:',rownames(a)[12])
+grep('01:',rownames(a)[13])
+grep('01:',rownames(a)[14])
+rownames(a)[1]
+rownames(a)[2]
+rownames(a)[14]
+rownames(a)[25]
+rownames(a)[254
+]
+rownames(a)[26]
+grep('01:',rownames(a)[26])
+dim(a)
+43819/24
+43819 % 24
+43819 %% 24
+tail(a)
+a[1:28,]
+43819 %% 23
+for (i in nrow(a)){#
+	for (j in ncol(a)){#
+		if (grep('01:',rownames(a)[i])==1){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
 }
-one.click <- function(number.of.pages){#
-#Steps for when all the functions are defined. #
-#
-#STEP 1: PUT IN THE URL AND OPEN THE BROWSER#
-#the main URL to pull from#
-url <- 'https://www.reddit.com/r/politics/'#
-browser <- open.page(url)#
-#
-#STEP 2: GET URLS TO THREADS ON PAGE#
-url.list <- create.thread.list(browser)#
-#STEP 3: GET LINK TO CLICK TO NEXT PAGE#
-next.link <- get.next.link(browser)#
-#
-#STEP 4: INITIALIZE DATA MATRIX#
-data.matrix <- matrix(c("a","b"),nrow=1)#
-#
-#STEP 5: GATHER COMMENT DATA FROM EACH THREAD#
-for (url in 1:length(url.list)){ #for every thread#
-  main.data <- main.data.generator(url.list,url) #create main data#
-  if (length(main.data) == 0){#
-    next#
-  }#
-  else{#
-    data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))#
-  }#
-}#
-#STEP 6: NAVIGATE TO THE NEXT PAGE#
-browser$navigate(next.link) #
-#
-#STEP 7: COLLECT COMMENT DATA ON NEW PAGE (by repeating steps 4+5)#
-url.list <- create.thread.list(browser)#
-#
-for (url in 1:length(url.list)){ #for every thread#
-  main.data <- main.data.generator(url.list,url) #create main data#
-  if (length(main.data) == 0){#
-    next#
-  }#
-  else{#
-    data.matrix <- rbind(data.matrix,comments.to.dataframe(main.data))#
-  }#
-}#
-#
-#STEP 8: GO TO THE NEXT PAGE USING THE SECOND "NEXTLINK" FUNCTION AND GO TO NEXT PAGE#
-next.link.2 <- get.next.link2(browser)#
-browser$navigate(next.link.2)#
-#STEP 9: REPEAT STEPS 7 AND 8 FOR AS LONG AS YOU LIKE#
-#
-## number.of.pages is the number of additional pages you would like to scroll through and take data from.#
-## for example, automate.scraping(3) will repeat steps 7 and 8 3 times.#
-automate.scraping(number.of.pages)#
-#STEP 10: CONVERT YOUR DATA INTO A DATAFRAME#
-reddit.data <- as.data.frame(data.matrix)#
-reddit.data <- reddit.data[-1,]#
-names(reddit.data) <- c("UTC","Body")#
+grep('01:',rownames(0)[i])
+length(grep('01:',rownames(a)[i]))
+length(grep('01:',rownames(0)[i]))
+length(grep('01:',rownames(1)[i]))
+length(grep('01:',rownames(2)[i]))
+length(grep('01:',rownames(a)[0]))
+length(grep('01:',rownames(a)[1]))
+length(grep('01:',rownames(a)[2]))
+for (i in nrow(a)){#
+	for (j in ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
 }
-one.click(3)
+b
+for (i in 1:nrow(a)){#
+	for (j in ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+head(a)
+i <- 1
+j <- 1
+length(grep('01:',rownames(a)[i])==1
+)
+length(grep('01:',rownames(a)[2])==1)
+i <-2
+i
+length(grep('01:',rownames(a)[i])==1
+)
+b[2,j] <- b[2,j] + a[i,j]
+b
+j <- 3
+a[i,j]
+b[2,j] <- b[2,j] + a[i,j]
+b[2,j]
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+for (i in 1:nrow(a)){#
+	for (j in ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)#
+#
+for (i in 1:nrow(a)){#
+	for (j in 1:ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+disp.by.hour <- function(grep.pattern,row,table,return.df){#
+	for (i in 1:nrow(table)){#
+		for (j in 1:ncol(table)){#
+			if (length(grep(grep.pattern,rownames(table)[i])==1)){#
+			return.df[row,j] <- return.df[row,j] + return.df[i,j]#
+			}#
+		}#
+	}#
+	return(return.df)#
+}
+dispositions.by.hour <- disp.by.hour('01:',2,a,b)
+dispositions.by.hour
+table <- a
+return.df <- b
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+return.df <- b
+grep.pattern <- '01:'
+grep.pattern
+row <- 2
+for (i in 1:nrow(table)){#
+		for (j in 1:ncol(table)){#
+			if (length(grep(grep.pattern,rownames(table)[i])==1)){#
+			return.df[row,j] <- return.df[row,j] + return.df[i,j]#
+			}#
+		}#
+	}
+return.df
+grep('01:',rownames(a)[26])
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+for (i in 1:nrow(a)){#
+		for (j in 1:ncol(b)){#
+			if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + b[i,j]#
+			}#
+		}#
+	}
+b
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+for (i in 1:nrow(a)){#
+	for (j in 1:ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+head(a)
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)#
+#
+for (i in 1:nrow(a)){#
+	for (j in 1:ncol(a)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+b
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+b
+for (i in 1:nrow(a)){#
+	for (j in 1:ncol(a)/2){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+for (i in 1:nrow(a)){#
+	for (j in 1:5){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)#
+#
+for (i in 1:nrow(a)){#
+	for (j in 1:ncol(b)){#
+		if (length(grep('01:',rownames(a)[i])==1)){#
+			b[2,j] <- b[2,j] + a[i,j]#
+		}#
+	}#
+}
+b
+disp.by.hour <- function(a,b,grep.pattern,row){#
+	for (i in 1:nrow(a)){#
+		for (j in 1:ncol(b)){#
+			if (length(grep(grep.pattern,rownames(a)[i])==1)){#
+			b[row,j] <- b[row,j] + a[i,j]#
+			}#
+		}#
+	}#
+	return(b)#
+}
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)
+disp.by.hour(a,b,'01:',2)
+disp.by.hour(a,b,'02:',3)#
+disp.by.hour(a,b,'03:',4)#
+disp.by.hour(a,b,'04:',5)
+b
+grep('00:00:00',rownames(a)[1])
+b
+b <- disp.by.hour(a,b,'01:',2)#
+b <- disp.by.hour(a,b,'02:',3)#
+b <- disp.by.hour(a,b,'03:',4)#
+b <- disp.by.hour(a,b,'04:',5)#
+b <- disp.by.hour(a,b,'05:',6)#
+b <- disp.by.hour(a,b,'06:',7)#
+b <- disp.by.hour(a,b,'07:',8)#
+b <- disp.by.hour(a,b,'08:',9)#
+b <- disp.by.hour(a,b,'09:',10)#
+b <- disp.by.hour(a,b,'10:',11)#
+b <- disp.by.hour(a,b,'11:',12)#
+b <- disp.by.hour(a,b,'12:',13)#
+b <- disp.by.hour(a,b,'13:',14)#
+b <- disp.by.hour(a,b,'14:',15)#
+b <- disp.by.hour(a,b,'15:',16)#
+b <- disp.by.hour(a,b,'16:',17)#
+b <- disp.by.hour(a,b,'17:',18)#
+b <- disp.by.hour(a,b,'18:',19)#
+b <- disp.by.hour(a,b,'19:',20)#
+b <- disp.by.hour(a,b,'20:',21)#
+b <- disp.by.hour(a,b,'21:',22)#
+b <- disp.by.hour(a,b,'22:',23)#
+b <- disp.by.hour(a,b,'23:',24)#
+b <- disp.by.hour(a,b,'00:00:00',1)
+b
+b[24,] <- 0
+b
+b <- disp.by.hour(a,b,'23:',24)
+b
+b[25,] <- 0
+b
+for (j in 1:ncol(b)){#
+	b[25,j] <- var(b[,j])#
+}
+b
+var(b$UNF)
+sqrt(4495681)
+for (j in 1:ncol(b)){#
+	for (i in 1:nrow(b)){#
+		b[25,j] <- var(b[,j]/i)#
+	}#
+}
+b
+b <- disp.by.hour(a,b,'01:',2)#
+b <- disp.by.hour(a,b,'02:',3)#
+b <- disp.by.hour(a,b,'03:',4)#
+b <- disp.by.hour(a,b,'04:',5)#
+b <- disp.by.hour(a,b,'05:',6)#
+b <- disp.by.hour(a,b,'06:',7)#
+b <- disp.by.hour(a,b,'07:',8)#
+b <- disp.by.hour(a,b,'08:',9)#
+b <- disp.by.hour(a,b,'09:',10)#
+b <- disp.by.hour(a,b,'10:',11)#
+b <- disp.by.hour(a,b,'11:',12)#
+b <- disp.by.hour(a,b,'12:',13)#
+b <- disp.by.hour(a,b,'13:',14)#
+b <- disp.by.hour(a,b,'14:',15)#
+b <- disp.by.hour(a,b,'15:',16)#
+b <- disp.by.hour(a,b,'16:',17)#
+b <- disp.by.hour(a,b,'17:',18)#
+b <- disp.by.hour(a,b,'18:',19)#
+b <- disp.by.hour(a,b,'19:',20)#
+b <- disp.by.hour(a,b,'20:',21)#
+b <- disp.by.hour(a,b,'21:',22)#
+b <- disp.by.hour(a,b,'22:',23)#
+b <- disp.by.hour(a,b,'23:',24)#
+b <- disp.by.hour(a,b,'00:00:00',1)#
+#
+c <- b
+b <- data.frame(matrix(0,24,44))#
+#
+rownames(b) <- c("0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23")#
+colnames(b) <- colnames(a)#
+#
+disp.by.hour <- function(a,b,grep.pattern,row){#
+	for (i in 1:nrow(a)){#
+		for (j in 1:ncol(b)){#
+			if (length(grep(grep.pattern,rownames(a)[i])==1)){#
+			b[row,j] <- b[row,j] + a[i,j]#
+			}#
+		}#
+	}#
+	return(b)#
+}#
+b <- disp.by.hour(a,b,'01:',2)#
+b <- disp.by.hour(a,b,'02:',3)#
+b <- disp.by.hour(a,b,'03:',4)#
+b <- disp.by.hour(a,b,'04:',5)#
+b <- disp.by.hour(a,b,'05:',6)#
+b <- disp.by.hour(a,b,'06:',7)#
+b <- disp.by.hour(a,b,'07:',8)#
+b <- disp.by.hour(a,b,'08:',9)#
+b <- disp.by.hour(a,b,'09:',10)#
+b <- disp.by.hour(a,b,'10:',11)#
+b <- disp.by.hour(a,b,'11:',12)#
+b <- disp.by.hour(a,b,'12:',13)#
+b <- disp.by.hour(a,b,'13:',14)#
+b <- disp.by.hour(a,b,'14:',15)#
+b <- disp.by.hour(a,b,'15:',16)#
+b <- disp.by.hour(a,b,'16:',17)#
+b <- disp.by.hour(a,b,'17:',18)#
+b <- disp.by.hour(a,b,'18:',19)#
+b <- disp.by.hour(a,b,'19:',20)#
+b <- disp.by.hour(a,b,'20:',21)#
+b <- disp.by.hour(a,b,'21:',22)#
+b <- disp.by.hour(a,b,'22:',23)#
+b <- disp.by.hour(a,b,'23:',24)#
+b <- disp.by.hour(a,b,'00:00:00',1)#
+#
+c <- b
+b
+for (j in 1:ncol(b)){#
+	for (i in 1:nrow(b)){#
+		d <- b[i,j]/b[i,]#
+		b[25,j] <- var(d)#
+	}#
+}
+b[25,] <- 0
+b
+c <- b
+for (j in 1:ncol(b)){#
+	for (i in 1:nrow(b)){#
+		d <- b[i,j]/b[i,]#
+		b[25,j] <- var(d)#
+	}#
+}
+d
+d <- b[i,j]/sum(b[i,])
+d
+for (j in 1:ncol(b)){#
+	for (i in 1:nrow(b)){#
+		d <- b[i,j]/sum(b[i,])#
+		b[25,j] <- var(d)#
+	}#
+}
+b
+d
+l <- c()
+l <- c(l,1)
+l
+for (j in 1:ncol(b)){#
+	list <- c()#
+	for (i in 1:nrow(b)){#
+		list <- c(list,b[i,j]/sum(b[i,]))#
+		b[25,j] <- var(d)#
+	}#
+}
+b
+list
+for (j in 1:ncol(b)){#
+	list <- c()#
+	for (i in 1:nrow(b)-1){#
+		list <- c(list,b[i,j]/sum(b[i,]))#
+		b[25,j] <- var(d)#
+	}#
+}
+c
+b <- c
+b
+for (j in 1:ncol(b)){#
+	list <- c()#
+	for (i in 1:nrow(b)-1){#
+		list <- c(list,b[i,j]/sum(b[i,]))#
+		b[25,j] <- var(d)#
+	}#
+}
+for (j in 1:ncol(b)){#
+	list <- c()#
+	for (i in 1:(nrow(b)-1)){#
+		list <- c(list,b[i,j]/sum(b[i,]))#
+		b[25,j] <- var(d)#
+	}#
+}
+b
+list
+for (j in 1:ncol(b)){#
+	list <- c()#
+	for (i in 1:(nrow(b)-1)){#
+		list <- c(list,b[i,j]/sum(b[i,]))#
+		b[25,j] <- var(list)#
+	}#
+}
+b
+variances <- b[25,]
+variances
+variances <- sort(variances)
+variances
+variances <- sort(variances,decreasing=TRUE)
+variances
+sprintf("%.10f",variances)
+sprintf("%.10f",variances)[1]
+head(data)
+summary(data$Priority)
+table(data$Type_,data$Priority)
+head(table(data$Type_,data$Priority))
+a <- head(table(data$Type_,data$Priority))
+dim(a)
+a <- table(data$Type_,data$Priority)
+dim(a)
+priorities <- table(data$Type_,data$Priority)
+priorities[1,]
+priorities[1,1]
+priorities[1,5]
+priorities[1,11]
+summary(data$Priority)
+max(priorities[1,])
+for (i in 1:nrow(priorities)){#
+	print(c(max(priorities[i,]),rownames(priorities)[i]))#
+}
+nrow(priority)
+nrow(priorities)
+priorities.df <- data.frame(matrix(0,nrow(priorities),2))
+priorities.df
+for (i in 1:nrow(priorities)){#
+	priorities.df[i,1] <- max(priorities[i,])#
+	priorities.df[i,2] <- rownames(priorities)[i]))#
+}
+for (i in 1:nrow(priorities)){#
+	priorities.df[i,1] <- max(priorities[i,])#
+	priorities.df[i,2] <- rownames(priorities)[i]#
+}
+priorities.df
+names(priorities.df) <- c("n.common.priority","call.type")
+priorities.df
+sum(data$Type_=="100")
+priorities.df <- data.frame(matrix(0,nrow(priorities),4))#
+names(priorities.df) <- c("call.type","n.common.priority")#
+#
+for (i in 1:nrow(priorities)){#
+	priorities.df[i,2] <- max(priorities[i,])#
+	priorities.df[i,1] <- rownames(priorities)[i]#
+}
+priorities.df
+names(priorities.df) <- c("call.type","n.common.priority","n.type","fraction")
+priorities.df
+for (i in 1:nrow(priorities)){#
+	priorities.df[i,1] <- rownames(priorities)[i]#
+	priorities.df[i,2] <- max(priorities[i,])#
+	priorities.df[i,2] <- sum(data$Type_==priorities.df$call.type[i])#
+}
+priorities.df
+i <- 1
+sum(data$Type_==priorities.df$call.type[i])
+for (i in 1:nrow(priorities)){#
+	priorities.df[i,1] <- rownames(priorities)[i]#
+	priorities.df[i,2] <- max(priorities[i,])#
+	priorities.df[i,3] <- sum(data$Type_==priorities.df$call.type[i])#
+	priorities.df[i,4] <- sum(priorities.df$n.common.priority[i]/priorities.df$n.type[i])#
+}
+priorities.df
+sort(priorities.df$fraction)
+sprintf(sort(priorities.df$fraction)[1])
+sprintf(sort(priorities.df$fraction))[1]
+sprintf("%.10f",sort(priorities.df$fraction))[1]
+summary(data$Type_) #type 21 is the most common#
+summary(data$Type_)[1]/nrow(data) #24.5%
+sprintf("%.10f",summary(data$Type_)[1]/nrow(data)) #24.5%
+sprintf("%.10f",median(data$DtoA[data$DtoA >= 0], na.rm=TRUE))
+max(means.by.dist) - min(means.by.dist)
+sprintf("%.10f",max(means.by.dist) - min(means.by.dist))
+sprintf("%.10f",sort(ratio.list, decreasing = TRUE)[1])
+setwd("/Users/sarahcox/Documents/Coursework/NYU - MS/Spring2016/Big Data/Project/Reddit Web Scraper")
+d1 <- read.csv("RedditDataApr12.csv")#
+d2 <- read.csv("RedditDataApr13.csv")#
+d3 <- read.csv("RedditDataApr14.csv")#
+d4 <- read.csv("RedditDataApr142.csv")#
+d5 <- read.csv("RedditDataApr143.csv")#
+d6 <- read.csv("RedditDataApr15.csv")#
+d7 <- read.csv("RedditDataApr152.csv")#
+d8 <- read.csv("RedditDataApr153.csv")#
+d9 <- read.csv("RedditDataApr144.csv")#
+d10 <- read.csv("RedditDataApr16.csv")#
+d11 <- read.csv("RedditDataApr17.csv")
+reddit <- rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11)
+dim(reddit)
+reddit.unique <- unique(reddit)
+dim(reddit.unique)
+tail(reddit)
+reddit <- reddit[,-1]
+reddit <- unique(reddit)
+dim(reddit)
+hillary <- read.csv("hillary.csv")
+bernie <- read.csv("Bernie.csv")
+uspol <- read.csv("USPolitics.csv")
+trump <- read.csv("Trump.csv")#
+cruz <- read.csv("TedCruz.csv")
+twitter <- rbind(hillary,bernie,trump,cruz,uspol)
+head(hillary)
+dim(hillary)
+dim(bernie)
+dim(trump)
+dim(cruz)
+dim(uspol)
+head(bernie)
+names(bernie)
+names(hillary)
+names(trump)
+dim(reddit)
+reddit[,3] <- "Reddit"
+head(reddit)
+d12 <- read.csv("RedditDataApr172.csv")
+reddit <- rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12)
+reddit <- reddit[,-1]#
+reddit <- unique(reddit)#
+reddit[,3] <- "Reddit"
+dim(reddit)
+write.csv(reddit,"RedditApr17.csv")
+d13 <- read.csv("RedditDataApr18.csv")
+dim(d12)
+dim(d13)
+write.csv(d12,"RedditDataApr172.csv")
+reddit <- rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13)
+reddit <- reddit[,-1]#
+reddit <- unique(reddit)#
+reddit[,3] <- "Reddit"
+dim(reddit)
+write.csv(reddit,"RedditMaster.csv")
+getwd
+getwd()

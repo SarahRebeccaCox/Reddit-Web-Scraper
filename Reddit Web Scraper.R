@@ -215,7 +215,7 @@ reddit.data <- reddit.data[-1,]
 names(reddit.data) <- c("UTC","Body")
 
 #STEP 11: SAVE TO CSV
-write.csv(reddit.data,"RedditDataApr142.csv")
+write.csv(reddit.data,"RedditDataApr25.csv")
 
 
 
