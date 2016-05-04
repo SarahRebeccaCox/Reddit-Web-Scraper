@@ -1,4 +1,6 @@
-data <- read.csv("final.csv")
+setwd("/Users/sarahcox/Documents/Coursework/NYU - MS/Spring2016/Big Data/Project/Reddit Web Scraper")
+
+data <- read.csv("preprocessed2.csv")
 summary(data)
 
 # floor Farr.Jenkins.Paterson and Flesch (> number becomes number, 9-Aug becomes 9)
@@ -45,7 +47,7 @@ for (i in 1:nrow(data)){
 
 summary(data)
 
-write.csv(data,"FinalClean.csv")
+write.csv(data,"FinalClean2.csv")
 
 set.seed(109)
 training.n <- sample(nrow(data),0.6*nrow(data))
@@ -54,5 +56,3 @@ testing <- data[-training.n,]
 
 write.csv(training,"training.csv")
 write.csv(testing,"testing.csv")
-cor_relation <- cor(data[,-c(1:3)])
-cor_relation[abs(cor_relation) < 0.8] <- NA
