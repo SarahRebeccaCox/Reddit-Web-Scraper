@@ -1,5 +1,5 @@
 data <- read.csv("final.csv")
-
+summary(data)
 
 # floor Farr.Jenkins.Paterson and Flesch (> number becomes number, 9-Aug becomes 9)
 data$Farr.Jenkins.Paterson <- as.numeric(gsub("[^0-9]","",data$Farr.Jenkins.Paterson))
@@ -11,6 +11,15 @@ data$LIX <- as.numeric(gsub("> 11","12",data$LIX)) #all values > 11 are just 12
 
 data$Wheeler.Smith <- gsub("< 1","0",data$Wheeler.Smith) #all values < 1 are just 0
 data$Wheeler.Smith <- as.numeric(gsub("> 4","5",data$Wheeler.Smith)) #all values > 5 are just 5
+
+
+data$RIX <- as.character(data$RIX)
+
+for (i in 1:nrow(data)){
+  if (data$RIX[i] == "> 12 (college)"){
+    data$RIX[i] <- "13"
+  }
+}
 
 data$RIX <- as.numeric(data$RIX)
 # replace missing values in source. confirmed by looking at them that they are all Twitter.
@@ -37,3 +46,13 @@ for (i in 1:nrow(data)){
 summary(data)
 
 write.csv(data,"FinalClean.csv")
+
+set.seed(109)
+training.n <- sample(nrow(data),0.6*nrow(data))
+training <- data[training.n,]
+testing <- data[-training.n,]
+
+write.csv(training,"training.csv")
+write.csv(testing,"testing.csv")
+cor_relation <- cor(data[,-c(1:3)])
+cor_relation[abs(cor_relation) < 0.8] <- NA
