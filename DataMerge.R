@@ -1,35 +1,11 @@
-#d1 <- read.csv("RedditDataApr12.csv")
-#d2 <- read.csv("RedditDataApr13.csv")
-#d3 <- read.csv("RedditDataApr14.csv")
-#d4 <- read.csv("RedditDataApr142.csv")
-#d5 <- read.csv("RedditDataApr143.csv")
-#d6 <- read.csv("RedditDataApr15.csv")
-#d7 <- read.csv("RedditDataApr152.csv")
-#d8 <- read.csv("RedditDataApr153.csv")
-#d9 <- read.csv("RedditDataApr144.csv")
-#d10 <- read.csv("RedditDataApr16.csv")
-#d11 <- read.csv("RedditDataApr17.csv")
-#d12 <- read.csv("RedditDataApr172.csv")
-#d13 <- read.csv("RedditDataApr18.csv")
+##############################################################################
+# IF YOU WANT TO DELETE DATA FROM A MERGED SET, USE                          #
+# data <- data[condition,]. for instance, if you want to keep all but stack, #
+# use data <- data[data$source != "Stack",]                                   #
+##############################################################################
 
-#reddit <- rbind(d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13)
-
-#reddit <- reddit[,-1]
-#reddit <- unique(reddit)
-#reddit[,3] <- "Reddit"
-
-
-
-d6 <- read.csv("RedditDataApr15.csv")
-d7 <- read.csv("RedditDataApr152.csv")
-d8 <- read.csv("RedditDataApr153.csv")
-
-
-data <- rbind(d6,d7,d8)
-data <- data[,-1]
-write.csv(data,"RedditApril15Complete.csv")
-
-
+#load data
+reddit <- read.csv("RedditApril15Complete.csv")
 stack <- read.csv("politics stack exchange.csv")
 twitter <- read.csv("PoliticsTweets.csv")
 
@@ -37,24 +13,33 @@ twitter <- read.csv("PoliticsTweets.csv")
 #DATA CLEANING#
 ###############
 
-twitter <- twitter[,2:3]
-stack <- stack[,1:2]
-twitter <- data.frame(twitter[,2],twitter[,1])
-names <- c("time","body")
-names(stack) <- names
-names(twitter) <- names
-reddit <- data
-names(reddit) <- names
+reddit <- reddit[,2:3]  #only keep text and time columns
+twitter <- twitter[,2:3] #only keep text and time columns
+stack <- stack[,1:2] #only keep text and time columns
+twitter <- data.frame(twitter[,2],twitter[,1]) #switch column order to time,text
+names <- c("time","body") #define column names
+names(stack) <- names #rename stack columns
+names(twitter) <- names #rename twitter columns
+names(reddit) <- names #rename reddit columns
 
-twitter[,1] <- as.character(twitter[,1])
-twitter[,1] <- sub("16","2016",twitter[,1])
+#converting twitter time to UTC
+twitter[,1] <- as.character(twitter[,1]) #convert text to character
+twitter[,1] <- sub("16","2016",twitter[,1]) 
 twitter[,1] <- as.numeric(as.POSIXct(twitter[,1],format="%m/%d/%Y %H:%M"))
+
+#converting stack time to UTC
 stack[,1] <- as.numeric(as.POSIXct(stack[,1]))
 
+#add Source column
 reddit$source <- "Reddit"
 twitter$source <- "Twitter"
 stack$source <- "Stack"
 
+#merge
+data <- rbind(reddit,twitter,stack) #rbind is short for rowbind
 
-data <- rbind(reddit,twitter,stack)
+#ensure that source is a factor var
 data$source <- as.factor(data$source)
+
+#only keep uniques
+data <- unique(data)
