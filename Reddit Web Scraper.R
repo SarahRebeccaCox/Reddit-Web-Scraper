@@ -15,11 +15,7 @@ library(RSelenium)
 #Getting comments through the JSON#
 ###################################
 
-#the main URL to pull from
-url <- 'https://www.reddit.com/r/politics/'
-
-
-#open the page
+## open the page
 wait_till_page_load<-function(page_load_time_out=60){
   t0<-Sys.time()
   while(browser$executeScript("return document.readyState;")[[1]]!="complete" & (Sys.time()-t0)<=page_load_time_out){
@@ -31,7 +27,7 @@ wait_till_page_load<-function(page_load_time_out=60){
 open.page <- function(url){
   checkForServer() # check if Selenium Server package is installed and if not, install now
   startServer(invisible = FALSE, log = FALSE) # start server
-  browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "firefox")
+  browser <- remoteDriver(remoteServerAddr = "localhost", port = 4444, browserName = "safari")
   
   
   browser$open()
@@ -42,7 +38,7 @@ open.page <- function(url){
 
 
 
-#create thread list
+## create thread list
 create.thread.list <- function(browser){ #works from open browser
   links <- browser$findElements(using="css selector", value=".may-blank")
   urls <- rep(NA, length(links))
@@ -61,7 +57,7 @@ create.thread.list <- function(browser){ #works from open browser
 
 
 
-#get the "next" link to crawl later
+## get the "next" link to crawl later
 get.next.link <- function(browser){
   links.next <- browser$findElements(using="css selector", value=".nextprev a")
   urls.next <- rep(NA, length(links.next))
@@ -73,7 +69,8 @@ get.next.link <- function(browser){
 }
 
 
-#get the "next" link to crawl later AFTER NEXT HAS BEEN CLICKED ONCE
+## get the "next" link to crawl later AFTER NEXT HAS BEEN CLICKED ONCE
+## because it's different after the first page
 get.next.link2 <- function(browser){
   links.next <- browser$findElements(using="css selector", value="#siteTable .separator+ a")
   urls.next <- rep(NA, length(links.next))
@@ -138,7 +135,7 @@ automate.scraping <- function(number.of.pages,matrix){
     next.link.2 <- get.next.link2(browser)
     browser$navigate(next.link.2)
     
-    print(paste0(as.character(round(100*i/33)),"%"))
+    print(paste0(as.character(i),"/",as.character(number.of.pages), " completed"))
     i <- i+1
     
   }
@@ -155,7 +152,9 @@ automate.scraping <- function(number.of.pages,matrix){
 #STEP 1: PUT IN THE URL AND OPEN THE BROWSER
 #the main URL to pull from
 url <- 'https://www.reddit.com/r/politics/'
-browser <- open.page(url)
+browser <- open.page(url) #may have to run twice
+##this will only work with the safari selenium webdriver installed.
+##I'm using version 2.48
 
 #STEP 2: GET URLS TO THREADS ON PAGE
 url.list <- create.thread.list(browser)
@@ -206,7 +205,8 @@ browser$navigate(next.link.2)
 
 ## number.of.pages is the number of additional pages you would like to scroll through and take data from.
 ## for example, automate.scraping(3) will repeat steps 7 and 8 3 times.
-data.matrix <- automate.scraping(33,data.matrix)
+## it seems 33 is the max number of pages we can go back
+data.matrix <- automate.scraping(3,data.matrix)
 
 
 #STEP 10: CONVERT YOUR DATA INTO A DATAFRAME
@@ -217,38 +217,5 @@ names(reddit.data) <- c("UTC","Body")
 #STEP 11: SAVE TO CSV
 write.csv(reddit.data,"RedditDataApr25.csv")
 
-
-
-#DON'T USE BELOW HERE
-
-
-###############################################
-#ATTEMPT TO GET ALL COMMENTS VIA SELECTOR TOOL#
-###############################################
-
-#this method returns more comments (and subcomments!)
-#but we can't easily map authors to comments
-#and we have to clean out html
-
-browser$navigate(url.list[5])
-comments <- browser$findElements(using="css selector", value=".md p")
-
-
-comment.url <- url.list[5]
-comments <- read_html(comment.url) # reading the HTML code
-text <- html_nodes(comments, ".md") # identify the CSS selector
-textauth <- html_nodes(comments, ".may-blank")
-text # content of CSS selector
-text2 <- as.character(text)
-textauth2 <- as.character(textauth)
-#this method will require cleaning out HTML, but I think it's faster
-
-##########################################
-
-
-#this section will eventually be able to click the "load more comments" button and continue scraping, hopefully. Ignore for now.
-
-
-##########################################
 
 
